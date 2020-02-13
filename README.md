@@ -1,2 +1,2 @@
 # KtanePasswordGenerator
-A modded module on Keep Talking and Nobody Explodes.
+A modded module for Keep Talking and Nobody Explodes.
