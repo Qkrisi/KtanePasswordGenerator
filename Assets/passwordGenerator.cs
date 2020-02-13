@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using KModkit;
@@ -20,34 +21,61 @@ public class passwordGenerator : MonoBehaviour {
 	private string convertedIndicators = "";
 	private string convertedLetter = "";
 	private string symbol ="";
+    private readonly string[] abc = new[] { "A", "B", "C", "D", "E", "F" };
+    private Dictionary<string, KMSelectable> btnDict = new Dictionary<string, KMSelectable>();
 
-	// Logging
-	static int moduleIdCounter = 1;
+    // Logging
+    static int moduleIdCounter = 1;
 	int moduleId;
 	
 
 	// Use this for initialization
 	void Awake () {
-		
-		moduleId = moduleIdCounter++;
+
+        btnDict = new Dictionary<string, KMSelectable>()
+        {
+            {"@",keypad[0]},
+            {"&",keypad[1]},
+            {"?",keypad[2]},
+            {"*",keypad[3]},
+            {"/",keypad[4]},
+            {"-",keypad[5]},
+            {"1",keypad[6]},
+            {"2",keypad[7]},
+            {"3",keypad[8]},
+            {"4",keypad[9]},
+            {"5",keypad[10]},
+            {"6",keypad[11]},
+            {"7",keypad[12]},
+            {"8",keypad[13]},
+            {"9",keypad[14]},
+            {"0",keypad[15]},
+            {"a",keypad[16]},
+            {"b",keypad[17]},
+            {"c",keypad[18]},
+            {"d",keypad[19]},
+            {"e",keypad[20]},
+            {"f",keypad[21]},
+            {"clear",clearButton},
+            {"submit",submitButton}
+        };
+
+        moduleId = moduleIdCounter++;
 
 		// Assigning buttons
 		foreach (KMSelectable key in keypad)
 		{
 			KMSelectable pressedKey = key;
-			key.OnInteract += delegate () { PressKey(pressedKey);
-			return false; };
+            key.OnInteract += () => PressKey(pressedKey);
 		}
-		clearButton.OnInteract += delegate () 
-			{ resetInput(clearButton);  return false; };
-		submitButton.OnInteract += delegate () 	
-			{ submitInput(submitButton); return false; };
+        clearButton.OnInteract += resetInput;
+        submitButton.OnInteract += submitInput;
 		ScreenDisplay(submitKey);
 		inputMode = true;
 		Debug.LogFormat("[Password Generator #{0}]: The module is waiting for submit button press to start the calculation.", moduleId);
 	}
 	// When a key is pressed
-	void PressKey (KMSelectable key)
+	bool PressKey (KMSelectable key)
 	{
 		GetComponent<KMAudio>().PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, key.transform);
 		key.AddInteractionPunch(0.25f);
@@ -58,6 +86,7 @@ public class passwordGenerator : MonoBehaviour {
 			pressedNumber = submitKey.Length;	
 			checkInput(pressedNumber);
 		}
+        return false;
 	}
 	
 	// Displays the screen
@@ -66,7 +95,7 @@ public class passwordGenerator : MonoBehaviour {
 		Screen.text = str;
 	}
 	// Reset the input
-	private void resetInput (KMSelectable clearButton)
+	private bool resetInput ()
 		{
 		GetComponent<KMAudio>().PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, clearButton.transform);
 		clearButton.AddInteractionPunch(0.25f);
@@ -76,9 +105,10 @@ public class passwordGenerator : MonoBehaviour {
 			pressedNumber = 0;
 			ScreenDisplay(submitKey);
 			}
+        return false;
 		}
 	// Submit the number
-	private void submitInput (KMSelectable submitButton)
+	private bool submitInput ()
 		{
 		GetComponent<KMAudio>().PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, submitButton.transform);
 		submitButton.AddInteractionPunch(0.25f);
@@ -97,60 +127,14 @@ public class passwordGenerator : MonoBehaviour {
 				char firstletter = Bomb.GetSerialNumberLetters().First();
 				var firstCharPos = char.ToUpperInvariant(firstletter) - 'A' + 1;
 				Debug.LogFormat("[Password Generator #{0}]: The numerical position of the first character of serial number is {1}", moduleId, firstCharPos);
-				
-				if (firstCharPos % 6 + 1 == 1)
-				{ convertedLetter = "A"; }
-				else if (firstCharPos % 6 + 1 == 2)
-				{ convertedLetter = "B"; }
-				else if (firstCharPos % 6 + 1 == 3)
-				{ convertedLetter = "C"; }
-				else if (firstCharPos % 6 + 1 == 4)
-				{ convertedLetter = "D"; }
-				else if (firstCharPos % 6 + 1 == 5)
-				{ convertedLetter = "E"; }
-				else if (firstCharPos % 6 + 1 == 6)
-				{ convertedLetter = "F"; }
+
+                convertedLetter = abc[firstCharPos % 6];
 				Debug.LogFormat("[Password Generator #{0}]: The calculated answer for Part I is {1}.", moduleId, convertedLetter);
-				
-				//Part II: Indicators, Batt, Ports
-				if (Bomb.GetBatteryCount() % 6 + 1 == 1)
-				{ convertedBatteries = "A"; }
-				else if (Bomb.GetBatteryCount() % 6 + 1 == 2)
-				{ convertedBatteries = "B"; }
-				else if (Bomb.GetBatteryCount() % 6 + 1 == 3)
-				{ convertedBatteries = "C"; }
-				else if (Bomb.GetBatteryCount() % 6 + 1 == 4)
-				{ convertedBatteries = "D"; }
-				else if (Bomb.GetBatteryCount() % 6 + 1 == 5)
-				{ convertedBatteries = "E"; }
-				else if (Bomb.GetBatteryCount() % 6 + 1 == 6)
-				{ convertedBatteries = "F"; }
 
-				if (Bomb.GetPortCount() % 6 + 1 == 1)			
-					{convertedPorts = "A";	}
-				else if (Bomb.GetPortCount() % 6 + 1 == 2)
-					{convertedPorts = "B";	}
-				else if (Bomb.GetPortCount() % 6 + 1 == 3)
-					{convertedPorts = "C";	}
-				else if (Bomb.GetPortCount() % 6 + 1 == 4)
-					{convertedPorts = "D";	}
-				else if (Bomb.GetPortCount() % 6 + 1 == 5)
-					{convertedPorts = "E";	}
-				else if (Bomb.GetPortCount() % 6 + 1 == 6)
-					{convertedPorts = "F";	}
-
-				if (Bomb.GetIndicators().Count() % 6 + 1 == 1)
-					{ convertedIndicators = "A"; }
-				else if (Bomb.GetIndicators().Count() % 6 + 1 == 2)
-					{ convertedIndicators = "B"; }
-				else if (Bomb.GetIndicators().Count() % 6 + 1 == 3)
-					{ convertedIndicators = "C"; }
-				else if (Bomb.GetIndicators().Count() % 6 + 1 == 4)
-					{ convertedIndicators = "D"; }
-				else if (Bomb.GetIndicators().Count() % 6 + 1 == 5)
-					{ convertedIndicators = "E"; }
-				else if (Bomb.GetIndicators().Count() % 6 + 1 == 6)
-					{ convertedIndicators = "F"; }
+                //Part II: Indicators, Batt, Ports
+                convertedBatteries = abc[Bomb.GetBatteryCount() % 6];
+                convertedPorts = abc[Bomb.GetPortCount() % 6];
+                convertedIndicators = abc[Bomb.GetIndicators().Count() % 6];
 
 				Debug.LogFormat("[Password Generator #{0}]: Number of batteries = {1}, indicators = {2}, and ports = {3}", moduleId, Bomb.GetBatteryCount(), Bomb.GetIndicators().Count(), Bomb.GetPortCount());
 				
@@ -169,27 +153,27 @@ public class passwordGenerator : MonoBehaviour {
 				Debug.LogFormat("[Password Generator #{0}]: The calculated answer for Part II is {1}", moduleId, correctPart2);
 				}
 				// Part III: Symbols
-				if (Bomb.GetModuleNames().Contains("Question Mark"))
+				if (containsModule("Question Mark", true))
 					{
 						symbol = "?"; 
 						Debug.LogFormat("[Password Generator #{0}]: Rule 1 applied: There are Question Mark module on the bomb.", moduleId);
 					}
-				else if (Bomb.GetModuleNames().Contains("Astrology"))
+				else if (containsModule("Astrology", true))
 					{	
 						symbol = "*";
 						Debug.LogFormat("[Password Generator #{0}]: Rule 2 applied: There are Astrology module on the bomb.", moduleId);
 					}
-				else if (Bomb.GetModuleNames().Contains("Logic") || Bomb.GetModuleNames().Contains("logic") || Bomb.GetModuleNames().Contains("Boolean") || Bomb.GetModuleNames().Contains("boolean") )
+				else if (containsModule(new[] { "logic", "boolean" }, false))
 					{	
 						symbol = "&";
 						Debug.LogFormat("[Password Generator #{0}]: Rule 3 applied: There are at least one module with 'Logic' or 'Boolean' in its name on the bomb.", moduleId);
 					}
-				else if (Bomb.GetModuleNames().Contains("Code") || Bomb.GetModuleNames().Contains("code"))
+				else if (containsModule("code", false))
 					{	
 						symbol = "/" ;
 						Debug.LogFormat("[Password Generator #{0}]: Rule 4 applied: There are at least one module with 'Code' in its name on the bomb.", moduleId);
 					}
-				else if (Bomb.GetModuleNames().Contains("Alphabet") || Bomb.GetModuleNames().Contains("alphabet"))
+				else if (containsModule("alphabet", false))
 					{	
 						symbol = "@";
 						Debug.LogFormat("[Password Generator #{0}]: Rule 5 applied: There are at least one module with 'Alphabet' in its name on the bomb.", moduleId);
@@ -236,9 +220,16 @@ public class passwordGenerator : MonoBehaviour {
 				generatedInput = "";
 			}
 		}
+        return false;
 	}
-	// Strike if received too many inputs
-	void checkInput(int pressedNumber)
+
+    private bool containsModule(object Module, bool Exact)
+    {
+        return Exact ? (Module.GetType().IsArray ? Bomb.GetModuleNames().Any(mod => ((string[])Module).Contains(mod)) : Bomb.GetModuleNames().Contains((string)Module)) : (Module.GetType().IsArray ? Bomb.GetModuleNames().Any(mod => ((string[])Module).Any(param => mod.ToLowerInvariant().Contains(param))) : Bomb.GetModuleNames().Any(mod => mod.ToLowerInvariant().Contains((string)Module)));
+    }
+
+    // Strike if received too many inputs
+    void checkInput(int pressedNumber)
 	{
 		if (pressedNumber > 7)
 		{
@@ -247,7 +238,6 @@ public class passwordGenerator : MonoBehaviour {
 			pressedNumber = 0;
 			ScreenDisplay(submitKey);
 			Debug.LogFormat("[Password Generator #{0}]: You have inputted too many characters. Module striked and reset.", moduleId);
-
 		}
 	}
     	IEnumerator DisplayBlink(string checkInput) {
@@ -292,4 +282,31 @@ public class passwordGenerator : MonoBehaviour {
 			yield return new WaitForSeconds(0.5f);
 			inputMode = true;
 		}
+    #pragma warning disable 414
+    string TwitchHelpMessage = "Use '!{0} press <button>' to press a button! Buttons can either be: submit, clear, or any other on the keypad. Buttons are chainable with spaces.";
+    #pragma warning restore 414
+    IEnumerator ProcessTwitchCommand(string command)
+    {
+        command = command.ToLowerInvariant();
+        if(!command.StartsWith("press "))
+        {
+            yield return null;
+            yield return "sendtochaterror Command must start with 'press '";
+            yield break;
+        }
+        string[] btns = command.Replace("press ", "").Split(new char[] { ' ' });
+        List<KMSelectable> btnsToPress = new List<KMSelectable>();
+        foreach(string btn in btns)
+        {
+            if(!btnDict.ContainsKey(btn))
+            {
+                yield return null;
+                yield return "sendtochaterror Invalid button!";
+                yield break;
+            }
+            btnsToPress.Add(btnDict[btn]);
+        }
+        yield return null;
+        yield return btnsToPress.ToArray();
+    }
 }
